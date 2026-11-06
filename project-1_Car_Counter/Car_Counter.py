@@ -95,6 +95,8 @@ classNames = [
 # Tracker
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 
+limits = [120, 400, 1275, 400]
+
 if mask is None:
     raise FileNotFoundError("car_mask.png not found!")
 
@@ -112,16 +114,14 @@ while cap.isOpened():
 
     img = cv2.resize(img, (new_width, new_height))
 
+    # Apply mask to original image
     # Resize mask
     resized_mask = cv2.resize(mask, (new_width, new_height))
-
     # Convert mask to grayscale
     mask_gray = cv2.cvtColor(resized_mask, cv2.COLOR_BGR2GRAY)
 
     # Convert to binary mask
     _, mask_binary = cv2.threshold(mask_gray, 127, 255, cv2.THRESH_BINARY)
-
-    # Apply mask to original image
     image_region = cv2.bitwise_and(img, img, mask=mask_binary)
 
     # YOLO detection
@@ -146,20 +146,13 @@ while cap.isOpened():
             current_class = classNames[cls]
 
             if current_class in ["car", "truck"] and conf > 0.3:
-                cvzone.putTextRect(
-                    img,
-                    f"{current_class} {conf:.2f}",
-                    (max(0, x1), max(35, y1)),
-                    scale=0.7,
-                    thickness=1,
-                    offset=3,
-                )
+                # cvzone.putTextRect(img,f"{current_class} {conf:.2f}",(max(0, x1), max(35, y1)),scale=0.7,thickness=1,offset=3,)
 
                 cvzone.cornerRect(
                     img,
                     (x1, y1, w, h),
                     l=8,
-                    rt=1,
+                    rt=5,
                     colorR=(255, 255, 0),
                     colorC=(0, 255, 255),
                 )
@@ -172,15 +165,35 @@ while cap.isOpened():
     results_tracker = tracker.update(
         detections
     )  # Update the tracker with the current detections
+
+    cv2.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 0, 255), 5)
+
     for result in results_tracker:
         x1, y1, x2, y2, id = result
+        x1, y1, x2, y2 = map(int, (x1, y1, x2, y2))
         print(result)
+        w = x2 - x1
+        h = y2 - y1
+        cvzone.cornerRect(
+            img,
+            (x1, y1, w, h),
+            l=8,
+            rt=2,
+            colorR=(255, 0, 0),
+            colorC=(0, 255, 255),
+        )
+        cvzone.putTextRect(
+            img,
+            f"{int(id)}",
+            (max(0, x1), max(35, y1)),
+            scale=1,
+            thickness=2,
+            offset=5,
+        )
 
     cv2.imshow("Car Detection", img)
 
-    cv2.imshow("Image Region", image_region)
-
-    if cv2.getWindowProperty("Car Detection", cv2.WND_PROP_VISIBLE) < 1:
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 
