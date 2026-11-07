@@ -197,7 +197,7 @@ while cap.isOpened():
     cvzone.putTextRect(img, f"{len(totalCount)}", (50, 50))
     cv2.imshow("Car Detection", img)
 
-    if cv2.waitKey(0) & 0xFF == ord("q"):
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 
