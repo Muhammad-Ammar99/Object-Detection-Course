@@ -119,11 +119,13 @@ while cap.isOpened():
     # Apply mask to original image
     # Resize mask
     resized_mask = cv2.resize(mask, (new_width, new_height))
+
     # Convert mask to grayscale
     mask_gray = cv2.cvtColor(resized_mask, cv2.COLOR_BGR2GRAY)
 
     # Convert to binary mask
     _, mask_binary = cv2.threshold(mask_gray, 127, 255, cv2.THRESH_BINARY)
+
     image_region = cv2.bitwise_and(img, img, mask=mask_binary)
 
     # YOLO detection
